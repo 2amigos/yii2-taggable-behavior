@@ -1,2 +1,2 @@
-yii2-tag-behavior
-=================
+yii2-taggable-behavior
+======================
