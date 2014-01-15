@@ -58,7 +58,7 @@ class Taggable extends Behavior
 	public function afterFind($event)
 	{
 		if ($this->owner->isRelationPopulated($this->relation)) {
-			$items = array();
+			$items = [];
 
 			foreach ($this->{$this->relation} as $tag) {
 				$items[] = $tag->{$this->name};
@@ -97,6 +97,7 @@ class Taggable extends Behavior
 
 		/** @var ActiveRecord $class */
 		$class = $relation->modelClass;
+		$rows = [];
 
 		foreach ($names as $name) {
 			$tag = $class::find([$this->name => $name]);
@@ -112,12 +113,13 @@ class Taggable extends Behavior
 				continue;
 			}
 
+			$rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
+		}
+
+		if (!empty($rows)) {
 			$this->owner->getDb()
 				->createCommand()
-				->insert($pivot, [
-					key($relation->via->link) => $this->owner->getPrimaryKey(),
-					current($relation->link) => $tag->getPrimaryKey(),
-				])
+				->batchInsert($pivot, [key($relation->via->link), current($relation->link)], $rows)
 				->execute();
 		}
 	}
