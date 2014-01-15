@@ -1,0 +1,23 @@
+{
+	"name": "2amigos/yii2-taggable-behavior",
+	"description": "Active record model behavior that allows to work with tags",
+	"keywords": ["yii", "extension", "behavior", "tags"],
+	"homepage": "https://github.com/2amigos/yii2-taggable-behavior",
+	"type": "yii2-extension",
+	"license": "BSD-3-Clause",
+	"authors": [
+		{
+			"name": "Alexander Kochetov",
+			"email": "creocoder@gmail.com"
+		}
+	],
+	"minimum-stability": "dev",
+	"require": {
+		"yiisoft/yii2": "*"
+	},
+	"autoload": {
+		"psr-4": {
+			"dosamigos\\behaviors\\": ""
+		}
+	}
+}
