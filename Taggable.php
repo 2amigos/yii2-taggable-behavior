@@ -13,7 +13,6 @@ use yii\db\ActiveRecord;
 use yii\db\Query;
 
 /**
- * Taggable behavior description.
  * @author Alexander Kochetov <creocoder@gmail.com>
  */
 class Taggable extends Behavior
