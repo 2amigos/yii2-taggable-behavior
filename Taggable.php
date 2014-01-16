@@ -77,15 +77,8 @@ class Taggable extends Behavior
 			return;
 		}
 
-		$relation = $this->owner->getRelation($this->relation);
-		$pivot = $relation->via->from[0];
-
 		if (!$this->owner->getIsNewRecord()) {
 			$this->beforeDelete($event);
-			$this->owner->getDb()
-				->createCommand()
-				->delete($pivot, [key($relation->via->link) => $this->owner->getPrimaryKey()])
-				->execute();
 		}
 
 		$names = array_unique(preg_split(
@@ -95,6 +88,8 @@ class Taggable extends Behavior
 			PREG_SPLIT_NO_EMPTY
 		));
 
+		$relation = $this->owner->getRelation($this->relation);
+		$pivot = $relation->via->from[0];
 		/** @var ActiveRecord $class */
 		$class = $relation->modelClass;
 		$rows = [];
@@ -143,5 +138,10 @@ class Taggable extends Behavior
 		if (!empty($pks)) {
 			$class::updateAllCounters([$this->frequency => -1], ['in', $class::primaryKey(), $pks]);
 		}
+
+		$this->owner->getDb()
+			->createCommand()
+			->delete($pivot, [key($relation->via->link) => $this->owner->getPrimaryKey()])
+			->execute();
 	}
 }
