@@ -60,11 +60,11 @@ class Taggable extends Behavior
 		if ($this->owner->isRelationPopulated($this->relation)) {
 			$items = [];
 
-			foreach ($this->{$this->relation} as $tag) {
+			foreach ($this->owner->{$this->relation} as $tag) {
 				$items[] = $tag->{$this->name};
 			}
 
-			$this->{$this->attribute} = implode(', ', $items);
+			$this->owner->{$this->attribute} = implode(', ', $items);
 		}
 	}
 
