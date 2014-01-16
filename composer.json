@@ -1,6 +1,6 @@
 {
 	"name": "2amigos/yii2-taggable-behavior",
-	"description": "Active record model behavior that allows to work with tags",
+	"description": "This extension allows you to get functional for tagging.",
 	"keywords": ["yii", "extension", "behavior", "tags"],
 	"homepage": "https://github.com/2amigos/yii2-taggable-behavior",
 	"type": "yii2-extension",
