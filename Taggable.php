@@ -63,7 +63,9 @@ class Taggable extends Behavior
 				$items[] = $tag->{$this->name};
 			}
 
-			$this->owner->{$this->attribute} = implode(', ', $items);
+			$this->owner->{$this->attribute} = is_array($this->owner->{$this->attribute})
+				? $items
+				: implode(', ', $items);
 		}
 	}
 
@@ -82,7 +84,13 @@ class Taggable extends Behavior
 
 		$names = array_unique(preg_split(
 			'/\s*,\s*/u',
-			preg_replace('/\s+/u', ' ', $this->owner->{$this->attribute}),
+			preg_replace(
+				'/\s+/u',
+				' ',
+				is_array($this->owner->{$this->attribute})
+					? implode(',', $this->owner->{$this->attribute})
+					: $this->owner->{$this->attribute}
+			),
 			-1,
 			PREG_SPLIT_NO_EMPTY
 		));
