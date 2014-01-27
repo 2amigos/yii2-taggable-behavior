@@ -11,13 +11,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```sh
-php composer.phar require dosamigos/yii2-taggable-behavior "*"
+php composer.phar require 2amigos/yii2-taggable-behavior "*"
 ```
 
 or add
 
 ```json
-"dosamigos/yii2-taggable-behavior": "*"
+"2amigos/yii2-taggable-behavior": "*"
 ```
 
 to the require section of your `composer.json` file.
