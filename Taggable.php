@@ -102,7 +102,7 @@ class Taggable extends Behavior
 		$rows = [];
 
 		foreach ($names as $name) {
-			$tag = $class::find([$this->name => $name]);
+			$tag = $class::findOne([$this->name => $name]);
 
 			if ($tag === null) {
 				$tag = new $class();
