@@ -56,17 +56,15 @@ class Taggable extends Behavior
 	 */
 	public function afterFind($event)
 	{
-		if ($this->owner->isRelationPopulated($this->relation)) {
-			$items = [];
+        $items = [];
 
-			foreach ($this->owner->{$this->relation} as $tag) {
-				$items[] = $tag->{$this->name};
-			}
+        foreach ($this->owner->{$this->relation} as $tag) {
+            $items[] = $tag->{$this->name};
+        }
 
-			$this->owner->{$this->attribute} = is_array($this->owner->{$this->attribute})
-				? $items
-				: implode(', ', $items);
-		}
+        $this->owner->{$this->attribute} = is_array($this->owner->{$this->attribute})
+            ? $items
+            : implode(', ', $items);
 	}
 
 	/**
