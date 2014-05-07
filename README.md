@@ -23,7 +23,7 @@ or add
 to the require section of your `composer.json` file.
 
 Configuring
---------------------------
+-----------
 
 First you need to configure model as follows:
 
@@ -34,21 +34,6 @@ class Post extends ActiveRecord
 		return [
 			[
 				'class' => Taggable::className(),
-			],
-		];
-	}
-}
-```
-
-Second you need to configure query model as follows:
-
-```php
-class PostQuery extends ActiveQuery
-{
-	public function behaviors() {
-		return [
-			[
-				'class' => TaggableQuery::className(),
 			],
 		];
 	}
