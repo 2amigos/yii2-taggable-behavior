@@ -32,13 +32,13 @@ use dosamigos\taggable\Taggable;
 
 class Post extends ActiveRecord
 {
-	public function behaviors() {
-		return [
-			[
-				'class' => Taggable::className(),
-			],
-		];
-	}
+    public function behaviors() {
+        return [
+            [
+                'class' => Taggable::className(),
+            ],
+        ];
+    }
 }
 ```
 
