@@ -1,7 +1,7 @@
 Taggable behavior for Yii 2
 ===========================
 
-This extension allows you to get functional for tagging.
+This extension provides behavior functions for tagging.
 
 Installation
 ------------
