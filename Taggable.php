@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/2amigos/yii2-taggable-behavior
- * @copyright Copyright (c) 2013 Alexander Kochetov
+ * @copyright Copyright (c) 2014 2amigOS! Consulting Group LLC
  * @license http://opensource.org/licenses/BSD-3-Clause
  */
 
