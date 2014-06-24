@@ -1,6 +1,8 @@
 Taggable behavior for Yii 2
 ===========================
 
+[![Latest Stable Version](https://poser.pugx.org/2amigos/yii2-taggable-behavior/v/stable.svg)](https://packagist.org/packages/2amigos/yii2-taggable-behavior) [![Total Downloads](https://poser.pugx.org/2amigos/yii2-taggable-behavior/downloads.svg)](https://packagist.org/packages/2amigos/yii2-taggable-behavior) [![Latest Unstable Version](https://poser.pugx.org/2amigos/yii2-taggable-behavior/v/unstable.svg)](https://packagist.org/packages/2amigos/yii2-taggable-behavior) [![License](https://poser.pugx.org/2amigos/yii2-taggable-behavior/license.svg)](https://packagist.org/packages/2amigos/yii2-taggable-behavior)
+
 This extension provides behavior functions for tagging.
 
 Installation
