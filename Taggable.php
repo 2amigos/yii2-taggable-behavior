@@ -99,6 +99,7 @@ class Taggable extends Behavior
         $class = $relation->modelClass;
         $rows = [];
 
+        $updatedTags = [];
         foreach ($names as $name) {
             $tag = $class::findOne([$this->name => $name]);
 
@@ -113,6 +114,7 @@ class Taggable extends Behavior
                 continue;
             }
 
+            $updatedTags[] = $tag;
             $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
         }
 
@@ -122,6 +124,8 @@ class Taggable extends Behavior
                 ->batchInsert($pivot, [key($relation->via->link), current($relation->link)], $rows)
                 ->execute();
         }
+        
+        $this->owner->populateRelation($this->relation, $updatedTags);
     }
 
     /**
