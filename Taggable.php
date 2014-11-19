@@ -37,6 +37,10 @@ class Taggable extends Behavior
      * @var string
      */
     public $relation = 'tags';
+    /**
+     * @var boolean
+     */
+    public $enableClearJunk = false;
 
     /**
      * @inheritdoc
@@ -152,5 +156,12 @@ class Taggable extends Behavior
             ->createCommand()
             ->delete($pivot, [key($relation->via->link) => $this->owner->getPrimaryKey()])
             ->execute();
+
+        if ($this->enableClearJunk) {
+            $this->owner->getDb()
+                ->createCommand()
+                ->delete($class::tableName(), $this->frequency . ' = 0')
+                ->execute();
+        }
     }
 }
