@@ -39,12 +39,23 @@ class Taggable extends Behavior
     public $relation = 'tags';
 
     /**
+     * Tag values
+     * @var array|string
+     */
+    public $tagValues;
+
+    /**
+     * @var bool
+     */
+    public $asArray = false;
+
+
+    /**
      * @inheritdoc
      */
     public function events()
     {
         return [
-            ActiveRecord::EVENT_AFTER_FIND => 'afterFind',
             ActiveRecord::EVENT_AFTER_INSERT => 'afterSave',
             ActiveRecord::EVENT_AFTER_UPDATE => 'afterSave',
             ActiveRecord::EVENT_BEFORE_DELETE => 'beforeDelete',
@@ -52,19 +63,64 @@ class Taggable extends Behavior
     }
 
     /**
-     * @param Event $event
+     * @inheritdoc
      */
-    public function afterFind($event)
+    public function canGetProperty($name, $checkVars = true)
+    {
+        if ($name == $this->attribute) {
+            return true;
+        }
+        return parent::canGetProperty($name, $checkVars);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function __get($name)
+    {
+        if ($name == $this->attribute) {
+            return $this->getTagNames();
+        }
+
+        return parent::__get($name);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canSetProperty($name, $checkVars = true)
+    {
+        if ($name == $this->attribute) {
+            return true;
+        }
+        return parent::canSetProperty($name, $checkVars);
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function __set($name, $value)
+    {
+        if ($name == $this->attribute) {
+            $this->tagValues = $value;
+            return ;
+        }
+
+        parent::__set($name, $value);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    private function getTagNames()
     {
         $items = [];
-
         foreach ($this->owner->{$this->relation} as $tag) {
             $items[] = $tag->{$this->name};
         }
 
-        $this->owner->{$this->attribute} = is_array($this->owner->{$this->attribute})
-            ? $items
-            : implode(', ', $items);
+        return $this->asArray ? $items : implode(', ', $items);
     }
 
     /**
@@ -72,7 +128,7 @@ class Taggable extends Behavior
      */
     public function afterSave($event)
     {
-        if ($this->owner->{$this->attribute} === null) {
+        if ($this->tagValues === null) {
             return;
         }
 
@@ -85,9 +141,9 @@ class Taggable extends Behavior
             preg_replace(
                 '/\s+/u',
                 ' ',
-                is_array($this->owner->{$this->attribute})
-                    ? implode(',', $this->owner->{$this->attribute})
-                    : $this->owner->{$this->attribute}
+                is_array($this->tagValues)
+                    ? implode(',', $this->tagValues)
+                    : $this->tagValues
             ),
             -1,
             PREG_SPLIT_NO_EMPTY
@@ -124,7 +180,7 @@ class Taggable extends Behavior
                 ->batchInsert($pivot, [key($relation->via->link), current($relation->link)], $rows)
                 ->execute();
         }
-        
+
         $this->owner->populateRelation($this->relation, $updatedTags);
     }
 
