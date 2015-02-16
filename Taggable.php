@@ -129,7 +129,11 @@ class Taggable extends Behavior
     public function afterSave($event)
     {
         if ($this->tagValues === null) {
-            return;
+            if($this->owner->{$this->attribute} !== null) {
+                $this->tagValues = $this->owner->{$this->attribute};
+            } else {
+                return;   
+            }
         }
 
         if (!$this->owner->getIsNewRecord()) {
