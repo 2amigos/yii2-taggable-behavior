@@ -8,9 +8,7 @@
 namespace dosamigos\taggable;
 
 use yii\base\Behavior;
-use yii\base\Event;
 use yii\db\ActiveRecord;
-use yii\db\Query;
 
 /**
  * @author Alexander Kochetov <creocoder@gmail.com>
@@ -37,18 +35,19 @@ class Taggable extends Behavior
      * @var string
      */
     public $relation = 'tags';
-
     /**
      * Tag values
      * @var array|string
      */
     public $tagValues;
-
     /**
      * @var bool
      */
     public $asArray = false;
-
+    /**
+     * @var null|array
+     */
+    private $_old_tags;
 
     /**
      * @inheritdoc
@@ -109,18 +108,22 @@ class Taggable extends Behavior
      */
     private function getTagNames()
     {
-        $items = [];
-        foreach ($this->owner->{$this->relation} as $tag) {
-            $items[] = $tag->{$this->name};
-        }
-
+        $items = array_keys($this->getOldTags());
         return $this->asArray ? $items : implode(', ', $items);
     }
 
-    /**
-     * @param Event $event
-     */
-    public function afterSave($event)
+    private function getOldTags()
+    {
+        if ($this->_old_tags === null) {
+            $this->_old_tags = $this->owner
+                ->getRelation($this->relation)
+                ->indexBy($this->name)
+                ->all();
+        }
+        return $this->_old_tags;
+    }
+
+    public function afterSave()
     {
         if ($this->tagValues === null) {
             if ($this->owner->{$this->attribute} !== null) {
@@ -128,10 +131,6 @@ class Taggable extends Behavior
             } else {
                 return;
             }
-        }
-
-        if (!$this->owner->getIsNewRecord()) {
-            $this->beforeDelete($event);
         }
 
         $names = array_unique(preg_split(
@@ -147,64 +146,52 @@ class Taggable extends Behavior
             PREG_SPLIT_NO_EMPTY
         ));
 
-        $relation = $this->owner->getRelation($this->relation);
-        $pivot = $relation->via->from[0];
+        $old = $this->getOldTags();
+        $new = array_flip($names);
+
+        $update = array_intersect_key($old, $new);
+        $delete = array_diff_key($old, $update);
+        $create = array_diff_key($new, $update);
+
         /** @var ActiveRecord $class */
-        $class = $relation->modelClass;
-        $rows = [];
+        $class = $this->owner->getRelation($this->relation)->modelClass;
 
-        $updatedTags = [];
-        foreach ($names as $name) {
-            $tag = $class::findOne([$this->name => $name]);
-
-            if ($tag === null) {
-                $tag = new $class();
-                $tag->{$this->name} = $name;
-            }
-
-            $tag->{$this->frequency}++;
-
-            if (!$tag->save()) {
-                continue;
-            }
-
-            $updatedTags[] = $tag;
-            $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
+        foreach ($create as $name => $key) {
+            $condition = [$this->name => $name];
+            $tag = $class::findOne($condition) ?: (new $class($condition));
+            $this->link($tag);
         }
 
-        if (!empty($rows)) {
-            $this->owner->getDb()
-                ->createCommand()
-                ->batchInsert($pivot, [key($relation->via->link), current($relation->link)], $rows)
-                ->execute();
+        foreach ($delete as $tag) {
+            $this->unlink($tag);
         }
+    }
 
-        $this->owner->populateRelation($this->relation, $updatedTags);
+    public function beforeDelete()
+    {
+        foreach ($this->getOldTags() as $tag) {
+            $this->unlink($tag);
+        }
     }
 
     /**
-     * @param Event $event
+     * @param $tag ActiveRecord
      */
-    public function beforeDelete($event)
+    protected function link($tag)
     {
-        $relation = $this->owner->getRelation($this->relation);
-        $pivot = $relation->via->from[0];
-        /** @var ActiveRecord $class */
-        $class = $relation->modelClass;
-        $query = new Query();
-        $pks = $query
-            ->select(current($relation->link))
-            ->from($pivot)
-            ->where([key($relation->via->link) => $this->owner->getPrimaryKey()])
-            ->column($this->owner->getDb());
-
-        if (!empty($pks)) {
-            $class::updateAllCounters([$this->frequency => -1], ['in', $class::primaryKey(), $pks]);
+        $tag->{$this->frequency}++;
+        if ($tag->save()) {
+            $this->owner->link($this->relation, $tag);
         }
+    }
 
-        $this->owner->getDb()
-            ->createCommand()
-            ->delete($pivot, [key($relation->via->link) => $this->owner->getPrimaryKey()])
-            ->execute();
+    /**
+     * @param $tag ActiveRecord
+     */
+    protected function unlink($tag)
+    {
+        $tag->{$this->frequency}--;
+        $tag->update();
+        $this->owner->unlink($this->relation, $tag, true);
     }
 }
