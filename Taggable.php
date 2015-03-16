@@ -64,13 +64,11 @@ class Taggable extends Behavior
 
     /**
      * @inheritdoc
+     * @return bool
      */
     public function canGetProperty($name, $checkVars = true)
     {
-        if ($name == $this->attribute) {
-            return true;
-        }
-        return parent::canGetProperty($name, $checkVars);
+        return $name == $this->attribute ?: parent::canGetProperty($name, $checkVars);
     }
 
     /**
@@ -80,22 +78,19 @@ class Taggable extends Behavior
     {
         if ($name == $this->attribute) {
             return $this->getTagNames();
+        } else {
+            return parent::__get($name);
         }
-
-        return parent::__get($name);
     }
 
     /**
      * @inheritdoc
+     * @return bool
      */
     public function canSetProperty($name, $checkVars = true)
     {
-        if ($name == $this->attribute) {
-            return true;
-        }
-        return parent::canSetProperty($name, $checkVars);
+        return $name == $this->attribute ?: parent::canSetProperty($name, $checkVars);
     }
-
 
     /**
      * @inheritdoc
@@ -104,10 +99,9 @@ class Taggable extends Behavior
     {
         if ($name == $this->attribute) {
             $this->tagValues = $value;
-            return ;
+        } else {
+            parent::__set($name, $value);
         }
-
-        parent::__set($name, $value);
     }
 
     /**
@@ -129,10 +123,10 @@ class Taggable extends Behavior
     public function afterSave($event)
     {
         if ($this->tagValues === null) {
-            if($this->owner->{$this->attribute} !== null) {
+            if ($this->owner->{$this->attribute} !== null) {
                 $this->tagValues = $this->owner->{$this->attribute};
             } else {
-                return;   
+                return;
             }
         }
 
