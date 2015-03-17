@@ -45,6 +45,10 @@ class Taggable extends Behavior
      */
     public $asArray = false;
     /**
+     * @var bool
+     */
+    public $enableClearJunk = true;
+    /**
      * @var null|array
      */
     private $_old_tags;
@@ -191,7 +195,11 @@ class Taggable extends Behavior
     protected function unlink($tag)
     {
         $tag->{$this->frequency}--;
-        $tag->update();
+        if ($this->enableClearJunk && $tag->{$this->frequency} == 0) {
+            $tag->delete();
+        } else {
+            $tag->update();
+        }
         $this->owner->unlink($this->relation, $tag, true);
     }
 }
