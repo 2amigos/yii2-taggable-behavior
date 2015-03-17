@@ -112,7 +112,7 @@ class Taggable extends Behavior
      */
     private function getTagNames()
     {
-        $items = array_keys($this->getOldTags());
+        $items = $this->owner->isNewRecord ? [] : array_keys($this->getOldTags());
         return $this->asArray ? $items : implode(', ', $items);
     }
 
