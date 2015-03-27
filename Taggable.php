@@ -30,10 +30,6 @@ class Taggable extends Behavior
     /**
      * @var string
      */
-    public $frequency = 'frequency';
-    /**
-     * @var string
-     */
     public $relation = 'tags';
     /**
      * Tag values
@@ -45,11 +41,23 @@ class Taggable extends Behavior
      */
     public $asArray = false;
     /**
-     * @var bool
+     * @var \Closure
      */
-    public $enableClearJunk = true;
+    public $beforeUnlink;
     /**
-     * @var null|array
+     * @var \Closure
+     */
+    public $afterUnlink;
+    /**
+     * @var \Closure
+     */
+    public $beforeLink;
+    /**
+     * @var \Closure
+     */
+    public $afterLink;
+    /**
+     * @var array
      */
     private $_old_tags;
 
@@ -76,6 +84,15 @@ class Taggable extends Behavior
 
     /**
      * @inheritdoc
+     * @return bool
+     */
+    public function canSetProperty($name, $checkVars = true)
+    {
+        return $name == $this->attribute ?: parent::canSetProperty($name, $checkVars);
+    }
+
+    /**
+     * @inheritdoc
      */
     public function __get($name)
     {
@@ -84,15 +101,6 @@ class Taggable extends Behavior
         } else {
             return parent::__get($name);
         }
-    }
-
-    /**
-     * @inheritdoc
-     * @return bool
-     */
-    public function canSetProperty($name, $checkVars = true)
-    {
-        return $name == $this->attribute ?: parent::canSetProperty($name, $checkVars);
     }
 
     /**
@@ -113,7 +121,7 @@ class Taggable extends Behavior
     private function getTagNames()
     {
         $items = $this->owner->isNewRecord ? [] : array_keys($this->getOldTags());
-        return $this->asArray ? $items : implode(', ', $items);
+        return $this->asArray ? $items : implode(',', $items);
     }
 
     private function getOldTags()
@@ -169,6 +177,12 @@ class Taggable extends Behavior
         foreach ($delete as $tag) {
             $this->unlink($tag);
         }
+
+        if ($this->afterLink instanceof \Closure) {
+            foreach($update as $tag) {
+                call_user_func($this->afterLink, $tag);
+            }
+        }
     }
 
     public function beforeDelete()
@@ -183,9 +197,14 @@ class Taggable extends Behavior
      */
     protected function link($tag)
     {
-        $tag->{$this->frequency}++;
-        if ($tag->save()) {
-            $this->owner->link($this->relation, $tag);
+        if ($this->beforeLink instanceof \Closure) {
+            call_user_func($this->beforeLink, $tag);
+        }
+
+        $tag->save() && $this->owner->link($this->relation, $tag);
+
+        if ($this->afterLink instanceof \Closure) {
+            call_user_func($this->afterLink, $tag);
         }
     }
 
@@ -194,12 +213,14 @@ class Taggable extends Behavior
      */
     protected function unlink($tag)
     {
-        $tag->{$this->frequency}--;
-        if ($this->enableClearJunk && $tag->{$this->frequency} == 0) {
-            $tag->delete();
-        } else {
-            $tag->update();
+        if ($this->beforeUnlink instanceof \Closure) {
+            call_user_func($this->beforeUnlink, $tag);
         }
+
         $this->owner->unlink($this->relation, $tag, true);
+
+        if ($this->afterUnlink instanceof \Closure) {
+            call_user_func($this->afterUnlink, $tag);
+        }
     }
 }
