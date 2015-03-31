@@ -148,10 +148,10 @@ public function actionList($query)
 
 
 // On our form
-<?= $form->field($model, 'tagNames')->widget(Selectize::className(), [
+<?= $form->field($model, 'tagNames')->widget(SelectizeTextInput::className(), [
     // calls an action that returns a JSON object with matched
     // tags
-    'url' => ['tag/list'],
+    'loadUrl' => ['tag/list'],
     'options' => ['class' => 'form-control'],
     'clientOptions' => [
         'plugins' => ['remove_button'],
