@@ -79,7 +79,7 @@ class Taggable extends Behavior
      */
     public function canGetProperty($name, $checkVars = true)
     {
-        return $name == $this->attribute ?: parent::canGetProperty($name, $checkVars);
+        return $name == $this->attribute ? : parent::canGetProperty($name, $checkVars);
     }
 
     /**
@@ -88,7 +88,7 @@ class Taggable extends Behavior
      */
     public function canSetProperty($name, $checkVars = true)
     {
-        return $name == $this->attribute ?: parent::canSetProperty($name, $checkVars);
+        return $name == $this->attribute ? : parent::canSetProperty($name, $checkVars);
     }
 
     /**
@@ -97,7 +97,7 @@ class Taggable extends Behavior
     public function __get($name)
     {
         if ($name == $this->attribute) {
-            return $this->getTagNames();
+            return $this->tagValues ? : $this->getTagNames();
         } else {
             return parent::__get($name);
         }
@@ -124,6 +124,9 @@ class Taggable extends Behavior
         return $this->asArray ? $items : implode(',', $items);
     }
 
+    /**
+     * @return ActiveRecord[]
+     */
     private function getOldTags()
     {
         if ($this->_old_tags === null) {
@@ -145,18 +148,9 @@ class Taggable extends Behavior
             }
         }
 
-        $names = array_unique(preg_split(
-            '/\s*,\s*/u',
-            preg_replace(
-                '/\s+/u',
-                ' ',
-                is_array($this->tagValues)
-                    ? implode(',', $this->tagValues)
-                    : $this->tagValues
-            ),
-            -1,
-            PREG_SPLIT_NO_EMPTY
-        ));
+        $value = is_array($this->tagValues) ? $this->tagValues : explode(',', $this->tagValues);
+        $value = array_map('trim', $value);
+        $names = array_unique($value);
 
         $old = $this->getOldTags();
         $new = array_flip($names);
@@ -187,9 +181,7 @@ class Taggable extends Behavior
 
     public function beforeDelete()
     {
-        foreach ($this->getOldTags() as $tag) {
-            $this->unlink($tag);
-        }
+        $this->owner->unlinkAll($this->relation, true);
     }
 
     /**
