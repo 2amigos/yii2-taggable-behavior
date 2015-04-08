@@ -26,7 +26,7 @@ class Taggable extends Behavior
     /**
      * @var string
      */
-    public $name = 'name';
+    public $relationAttribute = 'name';
     /**
      * @var string
      */
@@ -132,7 +132,7 @@ class Taggable extends Behavior
         if ($this->_old_tags === null) {
             $this->_old_tags = $this->owner
                 ->getRelation($this->relation)
-                ->indexBy($this->name)
+                ->indexBy($this->relationAttribute)
                 ->all();
         }
         return $this->_old_tags;
@@ -163,7 +163,7 @@ class Taggable extends Behavior
         $class = $this->owner->getRelation($this->relation)->modelClass;
 
         foreach ($create as $name => $key) {
-            $condition = [$this->name => $name];
+            $condition = [$this->relationAttribute => $name];
             $tag = $class::findOne($condition) ?: (new $class($condition));
             $this->link($tag);
         }
