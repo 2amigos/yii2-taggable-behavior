@@ -150,10 +150,11 @@ class Taggable extends Behavior
 
         $value = is_array($this->tagValues) ? $this->tagValues : explode(',', $this->tagValues);
         $value = array_map('trim', $value);
-        $names = array_unique($value);
+        $value = array_unique($value);
+        $value = array_filter($value);
 
         $old = $this->getOldTags();
-        $new = array_flip($names);
+        $new = array_flip($value);
 
         $update = array_intersect_key($old, $new);
         $delete = array_diff_key($old, $update);
