@@ -12,13 +12,11 @@ use yii\db\ActiveRecord;
 
 /**
  * @author Alexander Kochetov <creocoder@gmail.com>
+ *
+ * @property ActiveRecord $owner
  */
 class Taggable extends Behavior
 {
-    /**
-     * @var ActiveRecord the owner of this behavior.
-     */
-    public $owner;
     /**
      * @var string
      */
@@ -31,11 +29,6 @@ class Taggable extends Behavior
      * @var string
      */
     public $relation = 'tags';
-    /**
-     * Tag values
-     * @var array|string
-     */
-    public $tagValues;
     /**
      * @var bool
      */
@@ -60,6 +53,10 @@ class Taggable extends Behavior
      * @var array
      */
     private $_old_tags;
+    /**
+     * @var array
+     */
+    private $_attributeValue;
 
     /**
      * @inheritdoc
@@ -96,11 +93,7 @@ class Taggable extends Behavior
      */
     public function __get($name)
     {
-        if ($name == $this->attribute) {
-            return $this->tagValues ? : $this->getTagNames();
-        } else {
-            return parent::__get($name);
-        }
+        return $name == $this->attribute ? $this->getAttributeValue() : null;
     }
 
     /**
@@ -109,19 +102,26 @@ class Taggable extends Behavior
     public function __set($name, $value)
     {
         if ($name == $this->attribute) {
-            $this->tagValues = $value;
-        } else {
-            parent::__set($name, $value);
+            $this->setAttributeValue($value);
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    private function getTagNames()
+    public function getAttributeValue()
     {
-        $items = $this->owner->isNewRecord ? [] : array_keys($this->getOldTags());
-        return $this->asArray ? $items : implode(',', $items);
+        if ($this->_attributeValue === null) {
+            $items = $this->owner->isNewRecord ? [] : array_keys($this->getOldTags());
+            $this->_attributeValue = $this->asArray ? $items : implode(',', $items);
+        }
+        return $this->_attributeValue;
+    }
+
+    public function setAttributeValue($value)
+    {
+        if ($this->asArray && is_array($value)) {
+            $this->_attributeValue = $value;
+        } elseif (!$this->asArray && is_string($value)) {
+            $this->_attributeValue = explode(',', $value);
+        }
     }
 
     /**
@@ -140,15 +140,11 @@ class Taggable extends Behavior
 
     public function afterSave()
     {
-        if ($this->tagValues === null) {
-            if ($this->owner->{$this->attribute} !== null) {
-                $this->tagValues = $this->owner->{$this->attribute};
-            } else {
-                return;
-            }
+        if (empty($this->_attributeValue)) {
+            return;
         }
 
-        $value = is_array($this->tagValues) ? $this->tagValues : explode(',', $this->tagValues);
+        $value = $this->_attributeValue;
         $value = array_map('trim', $value);
         $value = array_unique($value);
         $value = array_filter($value);
