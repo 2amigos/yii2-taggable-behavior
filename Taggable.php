@@ -8,19 +8,15 @@
 namespace dosamigos\taggable;
 
 use yii\base\Behavior;
-use yii\base\Event;
 use yii\db\ActiveRecord;
-use yii\db\Query;
 
 /**
  * @author Alexander Kochetov <creocoder@gmail.com>
+ *
+ * @property ActiveRecord $owner
  */
 class Taggable extends Behavior
 {
-    /**
-     * @var ActiveRecord the owner of this behavior.
-     */
-    public $owner;
     /**
      * @var string
      */
@@ -28,27 +24,43 @@ class Taggable extends Behavior
     /**
      * @var string
      */
-    public $name = 'name';
-    /**
-     * @var string
-     */
-    public $frequency = 'frequency';
+    public $relationAttribute = 'name';
     /**
      * @var string
      */
     public $relation = 'tags';
-
-    /**
-     * Tag values
-     * @var array|string
-     */
-    public $tagValues;
-
     /**
      * @var bool
      */
     public $asArray = false;
-
+    /**
+     * @var \Closure
+     */
+    public $beforeUnlink;
+    /**
+     * @var \Closure
+     */
+    public $afterUnlink;
+    /**
+     * @var \Closure
+     */
+    public $beforeLink;
+    /**
+     * @var \Closure
+     */
+    public $afterLink;
+    /**
+     * @var \Closure
+     */
+    public $getItem;
+    /**
+     * @var array
+     */
+    private $_old_tags;
+    /**
+     * @var array
+     */
+    private $_attributeValue;
 
     /**
      * @inheritdoc
@@ -64,13 +76,20 @@ class Taggable extends Behavior
 
     /**
      * @inheritdoc
+     * @return bool
      */
     public function canGetProperty($name, $checkVars = true)
     {
-        if ($name == $this->attribute) {
-            return true;
-        }
-        return parent::canGetProperty($name, $checkVars);
+        return $name == $this->attribute ?: parent::canGetProperty($name, $checkVars);
+    }
+
+    /**
+     * @inheritdoc
+     * @return bool
+     */
+    public function canSetProperty($name, $checkVars = true)
+    {
+        return $name == $this->attribute ?: parent::canSetProperty($name, $checkVars);
     }
 
     /**
@@ -78,24 +97,8 @@ class Taggable extends Behavior
      */
     public function __get($name)
     {
-        if ($name == $this->attribute) {
-            return $this->getTagNames();
-        }
-
-        return parent::__get($name);
+        return $name == $this->attribute ? $this->getAttributeValue() : null;
     }
-
-    /**
-     * @inheritdoc
-     */
-    public function canSetProperty($name, $checkVars = true)
-    {
-        if ($name == $this->attribute) {
-            return true;
-        }
-        return parent::canSetProperty($name, $checkVars);
-    }
-
 
     /**
      * @inheritdoc
@@ -103,114 +106,123 @@ class Taggable extends Behavior
     public function __set($name, $value)
     {
         if ($name == $this->attribute) {
-            $this->tagValues = $value;
-            return ;
+            $this->setAttributeValue($value);
         }
+    }
 
-        parent::__set($name, $value);
+    public function getAttributeValue()
+    {
+        if ($this->_attributeValue === null) {
+            $items = $this->owner->isNewRecord ? [] : array_keys($this->getOldTags());
+            $this->_attributeValue = $this->asArray ? $items : implode(',', $items);
+        }
+        return $this->_attributeValue;
+    }
+
+    public function setAttributeValue($value)
+    {
+        if (is_array($value)) {
+            $this->_attributeValue = $value;
+        } elseif (is_string($value)) {
+            $this->_attributeValue = explode(',', $value);
+        }
     }
 
     /**
-     * @inheritdoc
+     * @return ActiveRecord[]
      */
-    private function getTagNames()
+    private function getOldTags()
     {
-        $items = [];
-        foreach ($this->owner->{$this->relation} as $tag) {
-            $items[] = $tag->{$this->name};
+        if ($this->_old_tags === null) {
+            $this->_old_tags = $this->owner
+                ->getRelation($this->relation)
+                ->indexBy($this->relationAttribute)
+                ->all();
         }
-
-        return $this->asArray ? $items : implode(', ', $items);
+        return $this->_old_tags;
     }
 
-    /**
-     * @param Event $event
-     */
-    public function afterSave($event)
+    public function afterSave()
     {
-        if ($this->tagValues === null) {
-            if($this->owner->{$this->attribute} !== null) {
-                $this->tagValues = $this->owner->{$this->attribute};
-            } else {
-                return;   
-            }
+        if (empty($this->_attributeValue)) {
+            return;
         }
 
-        if (!$this->owner->getIsNewRecord()) {
-            $this->beforeDelete($event);
-        }
+        $value = $this->_attributeValue;
+        $value = array_map('trim', $value);
+        $value = array_unique($value);
+        $value = array_filter($value);
 
-        $names = array_unique(preg_split(
-            '/\s*,\s*/u',
-            preg_replace(
-                '/\s+/u',
-                ' ',
-                is_array($this->tagValues)
-                    ? implode(',', $this->tagValues)
-                    : $this->tagValues
-            ),
-            -1,
-            PREG_SPLIT_NO_EMPTY
-        ));
+        $old = $this->getOldTags();
+        $new = array_flip($value);
 
-        $relation = $this->owner->getRelation($this->relation);
-        $pivot = $relation->via->from[0];
+        $update = array_intersect_key($old, $new);
+        $delete = array_diff_key($old, $update);
+        $create = array_diff_key($new, $update);
+
         /** @var ActiveRecord $class */
-        $class = $relation->modelClass;
-        $rows = [];
+        $class = $this->owner->getRelation($this->relation)->modelClass;
 
-        $updatedTags = [];
-        foreach ($names as $name) {
-            $tag = $class::findOne([$this->name => $name]);
-
-            if ($tag === null) {
-                $tag = new $class();
-                $tag->{$this->name} = $name;
-            }
-
-            $tag->{$this->frequency}++;
-
-            if (!$tag->save()) {
-                continue;
-            }
-
-            $updatedTags[] = $tag;
-            $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
+        foreach ($create as $name => $key) {
+            $tag = $this->getItem($name, $class);
+            $this->link($tag);
         }
 
-        if (!empty($rows)) {
-            $this->owner->getDb()
-                ->createCommand()
-                ->batchInsert($pivot, [key($relation->via->link), current($relation->link)], $rows)
-                ->execute();
+        foreach ($delete as $tag) {
+            $this->unlink($tag);
         }
 
-        $this->owner->populateRelation($this->relation, $updatedTags);
+        if ($this->afterLink instanceof \Closure) {
+            foreach ($update as $tag) {
+                call_user_func($this->afterLink, $tag);
+            }
+        }
+    }
+
+    public function beforeDelete()
+    {
+        $this->owner->unlinkAll($this->relation, true);
+    }
+
+    protected function getItem($name, $class)
+    {
+        if ($this->getItem instanceof \Closure) {
+            return call_user_func($this->getItem, $name, $class);
+        } else {
+            $condition = [$this->relationAttribute => $name];
+            return $class::findOne($condition) ?: new $class($condition);
+        }
     }
 
     /**
-     * @param Event $event
+     * @param $tag ActiveRecord
      */
-    public function beforeDelete($event)
+    protected function link($tag)
     {
-        $relation = $this->owner->getRelation($this->relation);
-        $pivot = $relation->via->from[0];
-        /** @var ActiveRecord $class */
-        $class = $relation->modelClass;
-        $query = new Query();
-        $pks = $query
-            ->select(current($relation->link))
-            ->from($pivot)
-            ->where([key($relation->via->link) => $this->owner->getPrimaryKey()])
-            ->column($this->owner->getDb());
-
-        if (!empty($pks)) {
-            $class::updateAllCounters([$this->frequency => -1], ['in', $class::primaryKey(), $pks]);
+        if ($this->beforeLink instanceof \Closure) {
+            call_user_func($this->beforeLink, $tag);
         }
 
-        $this->owner->getDb()
-            ->createCommand()
-            ->delete($pivot, [key($relation->via->link) => $this->owner->getPrimaryKey()])
-            ->execute();
+        $tag->save() && $this->owner->link($this->relation, $tag);
+
+        if ($this->afterLink instanceof \Closure) {
+            call_user_func($this->afterLink, $tag);
+        }
+    }
+
+    /**
+     * @param $tag ActiveRecord
+     */
+    protected function unlink($tag)
+    {
+        if ($this->beforeUnlink instanceof \Closure) {
+            call_user_func($this->beforeUnlink, $tag);
+        }
+
+        $this->owner->unlink($this->relation, $tag, true);
+
+        if ($this->afterUnlink instanceof \Closure) {
+            call_user_func($this->afterUnlink, $tag);
+        }
     }
 }
