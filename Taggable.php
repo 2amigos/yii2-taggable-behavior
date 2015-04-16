@@ -50,6 +50,10 @@ class Taggable extends Behavior
      */
     public $afterLink;
     /**
+     * @var \Closure
+     */
+    public $getItem;
+    /**
      * @var array
      */
     private $_old_tags;
@@ -76,7 +80,7 @@ class Taggable extends Behavior
      */
     public function canGetProperty($name, $checkVars = true)
     {
-        return $name == $this->attribute ? : parent::canGetProperty($name, $checkVars);
+        return $name == $this->attribute ?: parent::canGetProperty($name, $checkVars);
     }
 
     /**
@@ -85,7 +89,7 @@ class Taggable extends Behavior
      */
     public function canSetProperty($name, $checkVars = true)
     {
-        return $name == $this->attribute ? : parent::canSetProperty($name, $checkVars);
+        return $name == $this->attribute ?: parent::canSetProperty($name, $checkVars);
     }
 
     /**
@@ -117,9 +121,9 @@ class Taggable extends Behavior
 
     public function setAttributeValue($value)
     {
-        if ($this->asArray && is_array($value)) {
+        if (is_array($value)) {
             $this->_attributeValue = $value;
-        } elseif (!$this->asArray && is_string($value)) {
+        } elseif (is_string($value)) {
             $this->_attributeValue = explode(',', $value);
         }
     }
@@ -160,8 +164,7 @@ class Taggable extends Behavior
         $class = $this->owner->getRelation($this->relation)->modelClass;
 
         foreach ($create as $name => $key) {
-            $condition = [$this->relationAttribute => $name];
-            $tag = $class::findOne($condition) ?: (new $class($condition));
+            $tag = $this->getItem($name, $class);
             $this->link($tag);
         }
 
@@ -170,7 +173,7 @@ class Taggable extends Behavior
         }
 
         if ($this->afterLink instanceof \Closure) {
-            foreach($update as $tag) {
+            foreach ($update as $tag) {
                 call_user_func($this->afterLink, $tag);
             }
         }
@@ -179,6 +182,16 @@ class Taggable extends Behavior
     public function beforeDelete()
     {
         $this->owner->unlinkAll($this->relation, true);
+    }
+
+    protected function getItem($name, $class)
+    {
+        if ($this->getItem instanceof \Closure) {
+            return call_user_func($this->getItem, $name, $class);
+        } else {
+            $condition = [$this->relationAttribute => $name];
+            return $class::findOne($condition) ?: new $class($condition);
+        }
     }
 
     /**
