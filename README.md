@@ -92,14 +92,9 @@ Finally, setup the behavior, and the attribute + rule that is going to work with
 on this case we are going to use defaults `tagNames`:
 
 ```php
-
 /**
- * @var string helper attribute to work with tags
+ * @inheritdoc
  */
-public $tagNames;
-
-// ....
-
 public function rules()
 {
     return [
@@ -108,6 +103,7 @@ public function rules()
         // ...
     ];
 }
+
 /**
  * @inheritdoc
  */
@@ -120,7 +116,6 @@ public function behaviors()
         Taggable::className(),
     ];
 }
-
 ```
 
 Thats it, we are now ready to use tags with our model. For example, this is how to use it in our forms together with our
