@@ -64,7 +64,7 @@ class Taggable extends Behavior
      */
     public function canGetProperty($name, $checkVars = true)
     {
-        if ($name == $this->attribute) {
+        if ($name === $this->attribute) {
             return true;
         }
         return parent::canGetProperty($name, $checkVars);
@@ -83,7 +83,7 @@ class Taggable extends Behavior
      */
     public function canSetProperty($name, $checkVars = true)
     {
-        if ($name == $this->attribute) {
+        if ($name === $this->attribute) {
             return true;
         }
         return parent::canSetProperty($name, $checkVars);
