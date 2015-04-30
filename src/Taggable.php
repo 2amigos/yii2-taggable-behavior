@@ -158,12 +158,10 @@ class Taggable extends Behavior
 
             $tag->{$this->frequency}++;
 
-            if (!$tag->save()) {
-                continue;
+            if ($tag->save()) {
+                $updatedTags[] = $tag;
+                $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
             }
-
-            $updatedTags[] = $tag;
-            $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
         }
 
         if (!empty($rows)) {
