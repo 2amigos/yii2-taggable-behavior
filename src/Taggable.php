@@ -91,7 +91,6 @@ class Taggable extends Behavior
         return parent::canSetProperty($name, $checkVars);
     }
 
-
     /**
      * @inheritdoc
      */
@@ -120,11 +119,7 @@ class Taggable extends Behavior
     public function afterSave($event)
     {
         if ($this->tagValues === null) {
-            if ($this->owner->{$this->attribute} !== null) {
-                $this->tagValues = $this->owner->{$this->attribute};
-            } else {
-                return;
-            }
+            $this->tagValues = $this->owner->{$this->attribute};
         }
 
         if (!$this->owner->getIsNewRecord()) {
