@@ -36,7 +36,7 @@ class Post extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            'taggable' => Taggable::className(),
+            Taggable::className(),
         ];
     }
 
