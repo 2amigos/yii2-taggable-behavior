@@ -75,11 +75,7 @@ class Taggable extends Behavior
      */
     public function __get($name)
     {
-        if ($name == $this->attribute) {
-            return $this->getTagNames();
-        }
-
-        return parent::__get($name);
+        return $this->getTagNames();
     }
 
     /**
@@ -99,12 +95,7 @@ class Taggable extends Behavior
      */
     public function __set($name, $value)
     {
-        if ($name == $this->attribute) {
-            $this->tagValues = $value;
-            return ;
-        }
-
-        parent::__set($name, $value);
+        $this->tagValues = $value;
     }
 
     /**
