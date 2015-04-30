@@ -37,18 +37,15 @@ class Taggable extends Behavior
      * @var string
      */
     public $relation = 'tags';
-
     /**
      * Tag values
      * @var array|string
      */
     public $tagValues;
-
     /**
      * @var bool
      */
     public $asArray = false;
-
 
     /**
      * @inheritdoc
