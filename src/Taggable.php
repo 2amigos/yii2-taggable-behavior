@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/2amigos/yii2-taggable-behavior
- * @copyright Copyright (c) 2014 2amigOS! Consulting Group LLC
+ * @copyright Copyright (c) 2013-2015 2amigOS! Consulting Group LLC
  * @license http://opensource.org/licenses/BSD-3-Clause
  */
 
@@ -37,18 +37,15 @@ class Taggable extends Behavior
      * @var string
      */
     public $relation = 'tags';
-
     /**
      * Tag values
      * @var array|string
      */
     public $tagValues;
-
     /**
      * @var bool
      */
     public $asArray = false;
-
 
     /**
      * @inheritdoc
@@ -67,9 +64,10 @@ class Taggable extends Behavior
      */
     public function canGetProperty($name, $checkVars = true)
     {
-        if ($name == $this->attribute) {
+        if ($name === $this->attribute) {
             return true;
         }
+
         return parent::canGetProperty($name, $checkVars);
     }
 
@@ -78,11 +76,7 @@ class Taggable extends Behavior
      */
     public function __get($name)
     {
-        if ($name == $this->attribute) {
-            return $this->getTagNames();
-        }
-
-        return parent::__get($name);
+        return $this->getTagNames();
     }
 
     /**
@@ -90,24 +84,19 @@ class Taggable extends Behavior
      */
     public function canSetProperty($name, $checkVars = true)
     {
-        if ($name == $this->attribute) {
+        if ($name === $this->attribute) {
             return true;
         }
+
         return parent::canSetProperty($name, $checkVars);
     }
-
 
     /**
      * @inheritdoc
      */
     public function __set($name, $value)
     {
-        if ($name == $this->attribute) {
-            $this->tagValues = $value;
-            return ;
-        }
-
-        parent::__set($name, $value);
+        $this->tagValues = $value;
     }
 
     /**
@@ -116,6 +105,7 @@ class Taggable extends Behavior
     private function getTagNames()
     {
         $items = [];
+
         foreach ($this->owner->{$this->relation} as $tag) {
             $items[] = $tag->{$this->name};
         }
@@ -129,11 +119,7 @@ class Taggable extends Behavior
     public function afterSave($event)
     {
         if ($this->tagValues === null) {
-            if($this->owner->{$this->attribute} !== null) {
-                $this->tagValues = $this->owner->{$this->attribute};
-            } else {
-                return;   
-            }
+            $this->tagValues = $this->owner->{$this->attribute};
         }
 
         if (!$this->owner->getIsNewRecord()) {
@@ -158,8 +144,8 @@ class Taggable extends Behavior
         /** @var ActiveRecord $class */
         $class = $relation->modelClass;
         $rows = [];
-
         $updatedTags = [];
+
         foreach ($names as $name) {
             $tag = $class::findOne([$this->name => $name]);
 
@@ -170,12 +156,10 @@ class Taggable extends Behavior
 
             $tag->{$this->frequency}++;
 
-            if (!$tag->save()) {
-                continue;
+            if ($tag->save()) {
+                $updatedTags[] = $tag;
+                $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
             }
-
-            $updatedTags[] = $tag;
-            $rows[] = [$this->owner->getPrimaryKey(), $tag->getPrimaryKey()];
         }
 
         if (!empty($rows)) {

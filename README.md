@@ -1,31 +1,33 @@
-Taggable behavior for Yii 2
-===========================
+# Taggable Behavior for Yii 2
 
-[![Latest Stable Version](https://poser.pugx.org/2amigos/yii2-taggable-behavior/v/stable.svg)](https://packagist.org/packages/2amigos/yii2-taggable-behavior) [![Total Downloads](https://poser.pugx.org/2amigos/yii2-taggable-behavior/downloads.svg)](https://packagist.org/packages/2amigos/yii2-taggable-behavior) [![Latest Unstable Version](https://poser.pugx.org/2amigos/yii2-taggable-behavior/v/unstable.svg)](https://packagist.org/packages/2amigos/yii2-taggable-behavior) [![License](https://poser.pugx.org/2amigos/yii2-taggable-behavior/license.svg)](https://packagist.org/packages/2amigos/yii2-taggable-behavior)
+[![Latest Version](https://img.shields.io/github/tag/2amigos/yii2-taggable-behavior.svg?style=flat-square&label=release)](https://github.com/2amigos/yii2-taggable-behavior/tags)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
+[![Build Status](https://img.shields.io/travis/2amigos/yii2-taggable-behavior/master.svg?style=flat-square)](https://travis-ci.org/2amigos/yii2-taggable-behavior)
+[![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/2amigos/yii2-taggable-behavior.svg?style=flat-square)](https://scrutinizer-ci.com/g/2amigos/yii2-taggable-behavior/code-structure)
+[![Quality Score](https://img.shields.io/scrutinizer/g/2amigos/yii2-taggable-behavior.svg?style=flat-square)](https://scrutinizer-ci.com/g/2amigos/yii2-taggable-behavior)
+[![Total Downloads](https://img.shields.io/packagist/dt/2amigos/yii2-taggable-behavior.svg?style=flat-square)](https://packagist.org/packages/2amigos/yii2-taggable-behavior)
 
 This extension provides behavior functions for tagging.
 
-Installation
-------------
+## Installation
 
 The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
 
 Either run
 
-```sh
-php composer.phar require 2amigos/yii2-taggable-behavior "*"
+```bash
+$ composer require 2amigos/yii2-taggable-behavior:~1.0
 ```
 
 or add
 
-```json
-"2amigos/yii2-taggable-behavior": "*"
+```
+"2amigos/yii2-taggable-behavior": "~1.0"
 ```
 
-to the require section of your `composer.json` file.
+to the `require` section of your `composer.json` file.
 
-Configuring
------------
+## Configuring
 
 First you need to configure model as follows:
 
@@ -44,8 +46,8 @@ class Post extends ActiveRecord
 }
 ```
 
-Usage
------
+## Usage
+
 First you need to create a `tbl_tag` (you can choose the name you wish) table with the following format, and build the
 correspondent `ActiveRecord` class (i.e. `Tag`):
 
@@ -90,14 +92,9 @@ Finally, setup the behavior, and the attribute + rule that is going to work with
 on this case we are going to use defaults `tagNames`:
 
 ```php
-
 /**
- * @var string helper attribute to work with tags
+ * @inheritdoc
  */
-public $tagNames;
-
-// ....
-
 public function rules()
 {
     return [
@@ -106,6 +103,7 @@ public function rules()
         // ...
     ];
 }
+
 /**
  * @inheritdoc
  */
@@ -118,7 +116,6 @@ public function behaviors()
         Taggable::className(),
     ];
 }
-
 ```
 
 Thats it, we are now ready to use tags with our model. For example, this is how to use it in our forms together with our
@@ -146,10 +143,10 @@ public function actionList($query)
 
 
 // On our form
-<?= $form->field($model, 'tagNames')->widget(Selectize::className(), [
+<?= $form->field($model, 'tagNames')->widget(SelectizeTextInput::className(), [
     // calls an action that returns a JSON object with matched
     // tags
-    'url' => ['tag/list'],
+    'loadUrl' => ['tag/list'],
     'options' => ['class' => 'form-control'],
     'clientOptions' => [
         'plugins' => ['remove_button'],
@@ -159,9 +156,7 @@ public function actionList($query)
         'create' => true,
     ],
 ])->hint('Use commas to separate tags') ?>
-
 ```
-
 
 As you can see, `tagNames` is the attribute (by default) from which we can access our tags and they are stored in it as
 names separated by commas if you defined your attribute `tagNames` as string or null, if you define `tagNames` as an
@@ -169,6 +164,28 @@ array, it will be filled with the related tags.
 
 Once you post a form with the above field, the tags will be automatically saved and linked to our `Tour` model.
 
-> [![2amigOS!](http://www.gravatar.com/avatar/55363394d72945ff7ed312556ec041e0.png)](http://www.2amigos.us)<br>
-<i>Web development has never been so fun!</i><br>
-[www.2amigos.us](http://www.2amigos.us)
+## Testing
+
+```bash
+$ ./vendor/bin/phpunit
+```
+
+## Contributing
+
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+## Credits
+
+- [Antonio Ramirez](https://github.com/tonydspaniard)
+- [Alexander Kochetov](https://github.com/creocoder)
+- [All Contributors](https://github.com/2amigos/yii2-selectize-widget/graphs/contributors)
+
+## License
+
+The BSD License (BSD). Please see [License File](LICENSE.md) for more information.
+
+<blockquote>
+    <a href="http://www.2amigos.us"><img src="http://www.gravatar.com/avatar/55363394d72945ff7ed312556ec041e0.png"></a><br>
+    <i>web development has never been so fun</i><br>
+    <a href="http://www.2amigos.us">www.2amigos.us</a>
+</blockquote>
