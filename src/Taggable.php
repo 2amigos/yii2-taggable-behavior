@@ -67,6 +67,7 @@ class Taggable extends Behavior
         if ($name === $this->attribute) {
             return true;
         }
+
         return parent::canGetProperty($name, $checkVars);
     }
 
@@ -86,6 +87,7 @@ class Taggable extends Behavior
         if ($name === $this->attribute) {
             return true;
         }
+
         return parent::canSetProperty($name, $checkVars);
     }
 
@@ -104,6 +106,7 @@ class Taggable extends Behavior
     private function getTagNames()
     {
         $items = [];
+
         foreach ($this->owner->{$this->relation} as $tag) {
             $items[] = $tag->{$this->name};
         }
@@ -117,7 +120,7 @@ class Taggable extends Behavior
     public function afterSave($event)
     {
         if ($this->tagValues === null) {
-            if($this->owner->{$this->attribute} !== null) {
+            if ($this->owner->{$this->attribute} !== null) {
                 $this->tagValues = $this->owner->{$this->attribute};
             } else {
                 return;
@@ -146,8 +149,8 @@ class Taggable extends Behavior
         /** @var ActiveRecord $class */
         $class = $relation->modelClass;
         $rows = [];
-
         $updatedTags = [];
+
         foreach ($names as $name) {
             $tag = $class::findOne([$this->name => $name]);
 
