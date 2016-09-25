@@ -49,7 +49,7 @@ class TaggableBehaviorTest extends DatabaseTestCase
     public function testFindPost()
     {
         $post = Post::findOne(2);
-        $this->assertEquals('tag 2, tag 3, tag 4', $post->tagNames);
+        $this->assertEquals('tag 2,tag 3,tag 4', $post->tagNames);
     }
 
     public function testCreatePost()
