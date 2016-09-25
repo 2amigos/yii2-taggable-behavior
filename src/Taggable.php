@@ -1,7 +1,7 @@
 <?php
 /**
  * @link https://github.com/2amigos/yii2-taggable-behavior
- * @copyright Copyright (c) 2013-2015 2amigOS! Consulting Group LLC
+ * @copyright Copyright (c) 2013-2016 2amigOS! Consulting Group LLC
  * @license http://opensource.org/licenses/BSD-3-Clause
  */
 
@@ -14,6 +14,7 @@ use yii\db\Query;
 
 /**
  * @author Alexander Kochetov <creocoder@gmail.com>
+ * @author Antonio Ramirez <hola@2amigos.us>
  */
 class Taggable extends Behavior
 {
