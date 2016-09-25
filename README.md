@@ -34,7 +34,7 @@ First you need to configure model as follows:
 ```php
 use dosamigos\taggable\Taggable;
 
-class Post extends ActiveRecord
+class Tour extends ActiveRecord
 {
     public function behaviors() {
         return [
