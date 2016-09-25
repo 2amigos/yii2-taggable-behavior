@@ -111,7 +111,7 @@ class Taggable extends Behavior
             $items[] = $tag->{$this->name};
         }
 
-        return $this->asArray ? $items : implode(', ', $items);
+        return $this->asArray ? $items : implode(',', $items);
     }
 
     /**
