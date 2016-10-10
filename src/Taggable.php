@@ -107,8 +107,12 @@ class Taggable extends Behavior
     {
         $items = [];
 
-        foreach ($this->owner->{$this->relation} as $tag) {
-            $items[] = $tag->{$this->name};
+        $tags=$this->owner->{$this->relation};
+
+        if (is_array($tags)){
+            foreach ($tags as $tag) {
+                $items[] = $tag->{$this->name};
+            }
         }
 
         return $this->asArray ? $items : implode(',', $items);
