@@ -35,6 +35,10 @@ class Taggable extends Behavior
      */
     public $frequency = 'frequency';
     /**
+     * @var bool
+     */
+    public $removeUnusedTags = false;
+    /**
      * @var string
      */
     public $relation = 'tags';
@@ -201,5 +205,10 @@ class Taggable extends Behavior
             ->createCommand()
             ->delete($pivot, [key($relation->via->link) => $this->owner->getPrimaryKey()])
             ->execute();
+        
+        if ($this->removeUnusedTags)
+        {
+            $class::deleteAll([$this->frequency => 0]);
+        }
     }
 }
