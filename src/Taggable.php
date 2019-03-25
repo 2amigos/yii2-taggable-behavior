@@ -163,7 +163,8 @@ class Taggable extends Behavior
                 $tag->{$this->name} = $name;
             }
 
-            $tag->{$this->frequency}++;
+            if ($this->frequency)
+                $tag->{$this->frequency}++;
 
             if ($tag->save()) {
                 $updatedTags[] = $tag;
@@ -186,6 +187,9 @@ class Taggable extends Behavior
      */
     public function beforeDelete($event)
     {
+        if (!$this->frequency)
+            return;
+        
         $relation = $this->owner->getRelation($this->relation);
         $pivot = $relation->via->from[0];
         /** @var ActiveRecord $class */
