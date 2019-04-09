@@ -163,7 +163,9 @@ class Taggable extends Behavior
                 $tag->{$this->name} = $name;
             }
 
-            $tag->{$this->frequency}++;
+            if (!is_null($tag->{$this->frequency})) {
+                $tag->{$this->frequency}++;
+            }
 
             if ($tag->save()) {
                 $updatedTags[] = $tag;
@@ -205,7 +207,7 @@ class Taggable extends Behavior
             ->createCommand()
             ->delete($pivot, [key($relation->via->link) => $this->owner->getPrimaryKey()])
             ->execute();
-        
+
         if ($this->removeUnusedTags)
         {
             $class::deleteAll([$this->frequency => 0]);
